@@ -3,7 +3,7 @@ title: "JenkinsのPipelineでPowershellを使用するときのポケットリ�
 emoji: "🌊"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["jenkins", "Powershell"]
-published: false
+published: true
 ---
 
 # 概要
