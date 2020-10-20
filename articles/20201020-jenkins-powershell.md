@@ -21,7 +21,7 @@ powershell "<powershell command>"
 ```
 
 ## Powershellコマンドの中で変数を展開する場合
-""の中に${}を記載することで変数を使用することができる。
+`""`の中に`${}`を記載することで変数を使用することができる。
 ```
 powershell "<powershell command> ${variable}"
 ```
@@ -95,7 +95,7 @@ powershell script: "Get-Content ${file}[${i}..${j}] | Remove-Item"
 ```
 
 ## フォルダにあるファイル数を取得する
-取得後、toInteger()が必要。
+取得後、`toInteger()`が必要。
 ```
 def str_file_num = powershell returnStdout: true, script: "(Get-ChildItem ${folder_path} | Measure-Object).Count"
 ```
