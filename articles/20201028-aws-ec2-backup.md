@@ -3,7 +3,7 @@ title: "AWS BakcupとSystemsManager AutomationでEC2バックアップを運用�
 emoji: "🐈"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["aws"]
-published: false
+published: true
 ---
 
 # EC2バックアップ前に停止して、バックアップ取得後に起動したい
