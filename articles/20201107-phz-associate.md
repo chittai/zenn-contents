@@ -30,7 +30,7 @@ EC2インスタンのIPとFQDNです。
 同じVPC内の名前解決はできますが、別アカウントのVPCの名前解決はできません。
 ![](https://storage.googleapis.com/zenn-user-upload/jvxxmwfmkn9wt8zjvv53fiagtpvd)
 
-### アカウントAのレコードと現時点での名前解決の状況
+### アカウントBのレコードと現時点での名前解決の状況
 ここの説明は上記と同じため割愛します。
 ![](https://storage.googleapis.com/zenn-user-upload/ark1oavikpuaf57j0vql9pedkzpx)
 
