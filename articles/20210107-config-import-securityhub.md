@@ -3,7 +3,7 @@ title: "「AWS Config ルールの評価結果を Security Hub にインポー�
 emoji: "🔥"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["aws"]
-published: false
+published: true
 ---
 
 # AWS Config ルールの評価結果を Security Hub にインポートする
@@ -41,7 +41,7 @@ ConfigSecHubFunction:
       Timeout: 300  
 ```
 
-参考までに発生したエラーメッセージを載せておきます。
+参考までに、この対応をせずにスタックを作成した時に発生したエラーメッセージを載せておきます。
 ```
 Error occurred while GetObject. S3 Error Code: PermanentRedirect. S3 Error Message: The bucket is in this region: eu-west-1. Please use this region to retry the request (Service: AWSLambdaInternal; Status Code: 400; Error Code:
 ```
@@ -56,17 +56,17 @@ def lambda_handler(event, context):
     print(lambda_context)
     parse_message(event)
 ```
-こちらも、参考までに発生したエラーメッセージを載せておきます。
+こちらも、参考までにこの対応をせずにLambdaで発生したエラーメッセージを載せておきます。
 ```
 [ERROR] NameError: name 'lambda_context' is not definedTraceback (most recent call last):  File "/var/task/lambda_function.py", line 109, in lambda_handler    print(lambda_context)
 ```
 これで準備完了です。あとは、CloudFormationからスタックを生成します。それが正常終了すれば、AWS Configからルールを追加するとConfigの評価結果がSecurityHubにインポートされるようになります。
 
 # インポートした検出結果の表示
-ConfigからSecurityHubにインポートした結果はこのように表示されます。`会社名はPersonal`、`製品はDefault`となっています。
+Configでルールを作成し、SecurityHubにインポートした結果はこのように表示されます。`会社はPersonal`、`製品はDefault`となっています。
 ![](https://storage.googleapis.com/zenn-user-upload/6uqlnyos67ui71t1fd9x5cy0pwpn)
 
-# 検出結果の「会社名」と「製品」を変えたい
+# 検出結果の「会社」と「製品」を変えたい
 この方法だと、製品名でのフィルタリングができません。そうなると管理がやり辛くなってしまいます。そのため、検出結果の`製品`の表示を変更したくなると思います。ただ、先に結論を書いておくと**このフィールドを変更することはできません**。
 
 ## 調査
@@ -103,4 +103,4 @@ https://docs.aws.amazon.com/ja_jp/securityhub/latest/userguide/securityhub-custo
 ![](https://storage.googleapis.com/zenn-user-upload/peotpkrj4ojoukuo1i4pu0nnl53c)
 
 # 結論
-AWS ConfigはSecurityHubと統合されていないため、その仕組を構築する必要がありました。そして、会社名・製品の表示をかえることはできないですが、他の情報を加えてフィルタリングできるようにすることで管理することが推奨されています。そのうち統合されるのではないかと思うので、気長に待ちましょう。
+AWS ConfigはSecurityHubと統合されていないため、その仕組を構築する必要がありました。そして、会社・製品の表示をかえることはできないですが、他の情報を加えてフィルタリングできるようにすることで管理することが推奨されています。そのうち統合されるのではないかと思うので、気長に待ちましょう。
