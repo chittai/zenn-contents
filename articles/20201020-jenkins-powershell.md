@@ -2,7 +2,7 @@
 title: "JenkinsのPipelineでPowershellを使用するときのポケットリファレンス"
 emoji: "🌊"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["jenkins", "Powershell"]
+topics: ["Jenkins", "Powershell"]
 published: true
 ---
 

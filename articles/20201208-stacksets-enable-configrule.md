@@ -2,7 +2,7 @@
 title: "StackSetを利用して、別アカウントのAWS Config Ruleを有効化する"
 emoji: "🙌"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["AWS"]
+topics: ["AWS","CloudFormation"]
 published: true
 ---
 

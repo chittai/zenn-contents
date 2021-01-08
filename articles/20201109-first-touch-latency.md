@@ -2,7 +2,7 @@
 title: "ファーストタッチレイテンシーの現象を試してみた"
 emoji: "😸"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["aws"]
+topics: ["aws","EBS"]
 published: true
 ---
 

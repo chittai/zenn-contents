@@ -1,8 +1,8 @@
 ---
-title: "SystensManager AutomationでリソースID以外でターゲットを指定する方法"
+title: "Systems Manager AutomationでリソースID以外でターゲットを指定する方法"
 emoji: "📚"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["aws"]
+topics: ["aws","Systems Manager"]
 published: true
 ---
 # SystemsManager Automationのドキュメントでリソース指定にIDを使いたくない

@@ -2,7 +2,7 @@
 title: "Privated Hosted Zoneを他のアカウントと関連付ける方法"
 emoji: "👋"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["aws"]
+topics: ["aws","Route53"]
 published: true
 ---
 

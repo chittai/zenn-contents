@@ -2,7 +2,7 @@
 title: "AWS SysOps Administrator Associateに合格したメモ"
 emoji: "🌟"
 type: "idea" # tech: 技術記事 / idea: アイデア
-topics: ["aws"]
+topics: ["aws","資格"]
 published: true
 ---
 

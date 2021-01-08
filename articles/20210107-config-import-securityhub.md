@@ -2,7 +2,7 @@
 title: "「AWS Config ルールの評価結果を Security Hub にインポートする方法」を試す"
 emoji: "🔥"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["aws"]
+topics: ["aws", "Security Hub"]
 published: true
 ---
 

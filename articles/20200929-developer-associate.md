@@ -2,7 +2,7 @@
 title: "AWS Developer Associateに合格したメモ"
 emoji: "💭"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["aws"]
+topics: ["aws", "資格"]
 published: true
 ---
 

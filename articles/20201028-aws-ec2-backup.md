@@ -2,7 +2,7 @@
 title: "AWS BakcupとSystemsManager AutomationでEC2バックアップを運用する方法"
 emoji: "🐈"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["aws"]
+topics: ["aws","EC2"]
 published: true
 ---
 
