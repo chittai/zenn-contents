@@ -1,5 +1,5 @@
 ---
-title: "DR構成においてAMI取得時にパラメータストアに最新のAMI_IDを格納する方法"
+title: "AMI取得時にパラメータストアに最新のAMI_IDを格納する方法(+DRサイトへの展開)"
 emoji: "✨"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["AWS","SystemsManager","AWSBackup","Lambda","EventBridge"]
