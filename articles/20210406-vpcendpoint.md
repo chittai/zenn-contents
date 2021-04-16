@@ -3,7 +3,7 @@ title: "PrivateLinkについて調べてまとめてみた"
 emoji: "🐕"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["AWS","PrivateLink"]
-published: false
+published: true
 ---
 
 # やりたかったこと
