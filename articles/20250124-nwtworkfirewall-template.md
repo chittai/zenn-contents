@@ -14,9 +14,6 @@ AWS NetworkFirewallをCloudFormationで作成する際に、以下の要素を�
 
 
 # やったこと
-## 前提
-IPS用にNetworkFirewallを利用するに当たり、AWS Managed Threat Signatures を利用したいと思っていました。
-かつ、AWS Managed Threat Signatures を利用する際にはブロックせずにアラートモードにして様子見をします。
 
 ## VPCルートテーブルの宛先にNetworkFirewallを設定する
 ルートテーブルでNetworkFirewallを指定する、ということは「NetworkFirewallのVPCエンドポイントを指定する」ことです。そのため、`VpcEndpointId` で指定するのですが `!REF` を利用してしまうと、[ARNが返ってくる](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-networkfirewall-firewall.html#aws-resource-networkfirewall-firewall-return-values)ためVPCエンドポイントを指定することができません。そこで、`!GetAtt` で取ってきたデータを分割して取り出しています。先程のリンクからGetAttで取得できるデータが確認できます。
