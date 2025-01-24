@@ -3,7 +3,7 @@ title: "CloudFormationでNetworkFirewallを作成する時に見直す記事"
 emoji: "🔥"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["AWS", "CloudFormation", "NetworkFirewall"]
-published: false
+published: true
 ---
 
 # はじめに
@@ -68,3 +68,5 @@ StatefulRuleGroupReferences:
 https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-properties-networkfirewall-firewallpolicy-statefulrulegroupreference.html
 
 
+# おわりに
+NetworkFirewallのテンプレートを作成する際に、調べたことを整理しました。テンプレート作成時の参考になれば幸いです。
