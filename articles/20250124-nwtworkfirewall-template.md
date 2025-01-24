@@ -3,7 +3,7 @@ title: "CloudFormationでNetworkFirewallを作成する時に見直す記事"
 emoji: "🔥"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [`AWS`, `CloudFormation`, `NetworkFirewall`]
-published: false
+published: true
 ---
 
 # はじめに
