@@ -11,7 +11,7 @@ AWS NetworkFirewallをCloudFormationで作成する際に、以下の要素を�
 - VPCルートテーブルの宛先にNetworkFirewallを設定する
 - "厳密な順序"を指定したNetworkFirewallポリシーを作成する
 - AWS Managed Threat Signatures を有効化する/アラートモードを有効化する
-
+- PolicyVariables に複数のCIDRを設定する
 
 # やったこと
 
@@ -67,6 +67,22 @@ StatefulRuleGroupReferences:
 
 https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-properties-networkfirewall-firewallpolicy-statefulrulegroupreference.html
 
+
+## PolicyVariables に複数のCIDRを設定する
+PolicyVariables では、複数のCIDRを設定することができます。しかし、ドキュメントには、`PolicyVariables` に複数のCIDRを設定する方法が記載されていません。そこで、以下のように記載することで、複数のCIDRを設定することができます。Type: AWS::NetworkFirewall::FirewallPolicy に `PolicyVariables` を追加するのですが、ドキュメントには `Definition:` についての記述がなく少しハマりました。
+
+https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-properties-networkfirewall-firewallpolicy-policyvariables.html
+
+
+```yaml
+        PolicyVariables:
+          RuleVariables:
+            HOME_NET:
+              Definition:
+                - 10.0.0.0/8
+                - 172.16.0.0/12
+                - 192.168.0.0/16
+```
 
 # おわりに
 NetworkFirewallのテンプレートを作成する際に、調べたことを整理しました。テンプレート作成時の参考になれば幸いです。
