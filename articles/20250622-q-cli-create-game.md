@@ -3,7 +3,7 @@ title: "Amazon Q CLI 初心者がゲームを作って分かった使用のコ�
 emoji: "🤖"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["aws","amazonq","game"]
-published: false
+published: true
 publication_name: "genda_jp"
 ---
 
