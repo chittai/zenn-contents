@@ -2,8 +2,9 @@
 title: "Amazon Q Developerのビルトインツール 'use_aws'の強みとは？"
 emoji: "🛠️"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["AWS"]
+topics: ["AWS","amazonq"]
 published: false
+publication_name: "genda_jp"
 ---
 
 # はじめに
