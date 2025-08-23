@@ -3,7 +3,7 @@ title: "Amazon Q Developer CLI をインストールして、さぁ、使うぞ�
 emoji: "🚀"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["AWS","amazonq"]
-published: false
+published: true
 publication_name: "genda_jp"
 ---
 
