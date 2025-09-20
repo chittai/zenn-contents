@@ -3,7 +3,7 @@ title: "GitHubのリポジトリでユーザー権限を変更したらCodeBuild
 emoji: "🤔"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["aws", "codebuild", "github", "githubactions", "ci"]
-published: false
+published: true
 publication_name: "genda_jp"
 ---
 
