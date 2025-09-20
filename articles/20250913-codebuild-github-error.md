@@ -7,22 +7,15 @@ published: false
 ---
 
 # 現象
-今回、以下のような現象に悩まされていました。
+今回、次の問題に遭遇しました。
 
-リポジトリのadmin権限を整理しているときに**特定の人物の権限をadminからwriteに変更したらCodeBuildのビルドが失敗するようになった**のです。仕組みもわからな状態だっため、仕組みを理解して原因を把握し対応策を考える必要がありました。
+リポジトリの権限を整理する中で、**特定ユーザーの権限を Admin から Write に変更したところ、CodeBuild のビルドが失敗するようになりました。** 仕組みがわからなかったため、原因の切り分けと対応策の検討が必要でした。
 
 ![](https://storage.googleapis.com/zenn-user-upload/1c678e5ea239-20250915.png)
-*このadminをwriteに変えると失敗する*
-
-## 環境の前提
-今回の事象が発生したのはどのような環境かを説明します。
-
-### 環境について
-WORKFLOW_JOB_QUEUED イベントをトリガーとしてCodeBuildのセルフホスト型 GitHub Actions ランナーを利用してビルドを行っています。
-https://docs.aws.amazon.com/ja_jp/codebuild/latest/userguide/action-runner-overview.html
+*この Admin を Write に変えると失敗する*
 
 # 発生していたエラー
-特定の人物の権限をadminからwriteに変えたら以下のようなメッセージが表示されビルドが失敗するようになりました。
+特定ユーザーの権限を Admin から Write に変えると、以下のメッセージが表示され、ビルドが失敗するようになりました。
 
 ```
 [Container] 2025/09/05 06:49:02.098320 Running on CodeBuild On-demand
@@ -38,148 +31,62 @@ https://docs.aws.amazon.com/ja_jp/codebuild/latest/userguide/action-runner-overv
 [Container] 2025/09/05 06:49:10.480942 Phase context status code: CLIENT_ERROR Message: Error while fetching runner token: error code 400: GitHub runner JIT configuration unavailable: ResourceNotFoundException: Unexpected error from GitHub while creating runner JIT configuration, please try again later
 ```
 
-まずはCodeBuildを利用したセルフホスト型 GitHub Actions ランナーの処理の仕組みについて整理をして行きたいと思います。
+## 環境について
+GitHub Actions の WORKFLOW_JOB_QUEUED をトリガーに、CodeBuild のセルフホスト型 GitHub Actions ランナーでビルドしています。構成は[公式チュートリアル](https://docs.aws.amazon.com/ja_jp/codebuild/latest/userguide/action-runner-overview.html)に準拠しています。
+
+まず、CodeBuild を使ったセルフホスト型ランナーの流れを簡単に整理します。
 
 ## CodeBuildがホストするセルフホスト型のGitHub Actionsランナーとは
-GitHub は WORKFLOW_JOB_QUEUED イベントを受け取ると Webhookからビルドプロジェクトを動かします。CodeBuild がビルド内で GitHub Actions ランナーを起動して該当ジョブを実行し、完了後にランナー/ビルドを終了します（＝ジョブごとにエフェメラルに動く）。
+GitHub は WORKFLOW_JOB_QUEUED イベントを受け取ると Webhook からビルドプロジェクトを起動します。CodeBuild はビルド内で GitHub Actions ランナーを起動して該当ジョブを実行し、完了後にランナー/ビルドを終了します。
 
-処理を整理すると以下になります。
+処理の流れを整理すると以下のようになります。
 
-1. GitHubのリポジトリにPushなどを行い、GitHub Actions のジョブが実行待ちキューに入る(workflow_job イベントの queued アクションを検知)
-1. CodeBuild が起動され、CodeBuild のビルド内で registration token 発行（GitHub API）
-1. CodeBuild が起動したビルド環境内で、GitHub Actions の self-hosted runner バイナリをダウンロード(runner tarball ダウンロード → 展開 → config.sh で登録 → run.sh 起動)
-1. 一時的に GitHub にランナー登録 
-1. runner が GitHub からジョブを受ける → 実行 → 結果を返す
-1. 終了時にランナーを削除する
-1. ジョブ完了 → config.sh remove（または API で削除）→ CodeBuild 終了
+1. GitHub のリポジトリで Push などの操作を行い、GitHub Actions のジョブが実行待ちキューに入る（workflow_job イベントの queued アクションを検知）
+1. Webhook で CodeBuild が起動され、ビルド内で GitHub API を使ってランナー登録用の registration token を発行する
+1. CodeBuild のビルド環境内で、GitHub Actions の self-hosted runner バイナリをダウンロード
+1. GitHub にランナーを登録し、ランナーが GitHub からジョブを受け取り実行する
+1. 終了時にランナーを削除し、CodeBuild のビルドも終了する
 
-ここで、もう一度エラーをみてみましょう。
->[Container] 2025/09/05 06:49:10.480905 Error while fetching runner token: error code 400: GitHub runner JIT configuration unavailable: ResourceNotFoundException: Unexpected error from GitHub while creating runner JIT configuration, please try again later
+![](https://storage.googleapis.com/zenn-user-upload/4c40e2a4d388-20250920.jpg)
+*処理の流れのイメージ図*
 
-このようなエラーが発生していました。ログの失敗は DOWNLOAD_SOURCE フェーズ で発生しています。エラー内容は「ランナー登録用の（JIT）トークン取得に失敗した」というもので、CodeBuild 側が GitHub に対して registration token（＝ランナーを一時登録するためのトークン）を取りに行ったときに 400 エラーが返ってきたことを示します。つまり、上記処理の「CodeBuild 内で registration token 発行（GitHub API）」で失敗していたことがわかります。
+ここで、もう一度エラーを見ます。
+> [Container] 2025/09/05 06:49:10.480905 Error while fetching runner token: error code 400: GitHub runner JIT configuration unavailable: ResourceNotFoundException: Unexpected error from GitHub while creating runner JIT configuration, please try again later
 
-図
+この失敗は DOWNLOAD_SOURCE フェーズで発生しています。内容は「ランナー登録用（JIT）のトークン取得に失敗した」というもの。つまり、上記フローの「CodeBuild 内で registration token を発行（GitHub API）」の段階で 400 エラーになっていると読み取れます。
 
-このrunnerを登録するためのtoken取得の処理が失敗していますregistration-token を発行するには該当スコープ（例：repo 管理権限 / org 管理権限、または GitHub App の適切な権限）が必要。GitHub App を使っている場合、対象 repo/org にインストールされていないと ResourceNotFound 的なエラーが出ることがある。なつまり、この処理をするにはadminが必要であるということです。なので、adminからwriteに変えると失敗します。
+## 課題のおさらい
+ここで課題を整理します。特定ユーザーが admin のときは問題なく、write に変更した瞬間にこのエラーが出ます。なぜこうなるのかを確認します。
 
+状況から、実行の主体が特定ユーザーの権限に依存していることがわかります。実際、Audit log にもそれが表れていました。さらに registration token を発行するには、リポジトリに対する[admin 権限が必要](https://docs.github.com/ja/rest/actions/self-hosted-runners#create-a-registration-token-for-a-repository)です。writeに変更することで権限がなくなった場合は ResourceNotFound などのエラーになります。つまり、admin から write に変更すると失敗するのは仕様上ごくまっとうな結果です。
 
-## 原因
-そもそもとして、今回の事象を整理するとこの実行が個人んおアカウントの権限に依存していることが問題です。GitHubのAudit logをみても個人が実行主体担っています。では、なぜ個人のアカウントになっているのか調査を進めると、直接的な原因は**CodeBuildの接続設定を空欄で作成したこと**でした。
+![](https://storage.googleapis.com/zenn-user-upload/3a35f7267333-20250920.png)
+*Audit logでchittaiというユーザがJITランナーの設定を読もうとしている*
 
-CodeBuildでGitHubとの接続を設定する際、接続名を空欄にして作成すると、GitHubアプリがユーザーの代行として実行されるようになります。つまり、GitHubアプリによる接続・認証は行われているものの、実際の操作はそのアプリをインストールしたユーザーの権限で実行されることになります。
+ここで、本来どうあるべきかを考えます。今回、そもそもとしてGitHubアプリが実行の主体だと考えていました。しかし実際には個人の権限で動いていたため、なぜ？となっていました。本来であれば GitHubアプリが実行の主体になっていてほしいと考えています。
 
-この状態では、以下のような問題が発生します：
-- ユーザーの権限変更が直接CodeBuildの実行に影響する
-- ユーザーがリポジトリから削除されると、CodeBuildが動作しなくなる可能性がある
-- セキュリティ上、個人のアカウントに依存した運用となってしまう
+## どうして特定ユーザが実行の主体になっていたのか
+さて、ここからAWSを含めた実装の話に入ります。なぜ個人の権限で動いていたのか調べると、直接の原因は **CodeBuild の接続設定を空欄で作成していたこと** でした。
 
-## 対応方法
-この問題を解決するには、GitHubアプリを適切にインストールし、Bot経由での接続に変更する必要があります。
+![](https://storage.googleapis.com/zenn-user-upload/5449fe08b4f6-20250920.png)
+*アプリインストールで「 GitHub ユーザーとして接続し、AWS CodeBuild プロジェクトで使用する」と記載があります*
 
-具体的な手順：
-1. CodeBuildのソース設定で、適切な接続名を指定する
-2. GitHubアプリの権限設定を確認し、必要な権限（Actions、Contents等）が付与されていることを確認する
-3. アプリがBot として動作するよう設定を見直す
-
-これにより、個人のユーザー権限に依存しない、安定したCI/CD環境を構築できます。
-
-# 学んだこと
-- CodeBuildとGitHubの接続設定は、空欄にせず明示的に設定することが重要
-- GitHubアプリの動作モード（ユーザー代行 vs Bot）を理解して適切に設定する
-- CI/CDパイプラインは個人のアカウントに依存しない設計にすべき
-- 権限変更時は、関連するサービスへの影響を事前に確認する
-
-このような設定ミスは見落としやすいため、インフラ構築時のチェックリストに含めることをお勧めします。
-
-
-
-
-----
-
-特定の人物の権限をwriteにしたら失敗して戻したら成功するという状況から「何かしらの処理」が特定のユーザ権限に紐づいてしまっているように見えるのですが、それが何故なのか、そしてそもそもとして何がおきているのかもわからなかったので
-
-# まとめ
-GitHubリポジトリのユーザー権限を整理した際、特定のユーザーをAdminからWriteに変更したところ、CodeBuildでホストしているGitHub Actionsのセルフホストランナーが失敗するようになりました。
-
-**原因**: CodeBuildの接続設定を空欄で作成したため、GitHubアプリがユーザーの代行として実行されており、そのユーザーの権限変更が直接影響していた。
-
-**解決策**: GitHubアプリを適切にインストールし、Bot経由での接続に変更することで問題を解決。
-
-
-
-## 仕組み
-AWS CodeBuild が起動したビルド環境内で、GitHub Actions の self-hosted runner バイナリをダウンロード → 一時的に GitHub にランナー登録 → ジョブを受け取って実行 → 終了時にランナーを削除するフローです。ログはまさにこの一連のライフサイクル（起動 → ダウンロード → 接続 → ジョブ実行 → クリーンアップ）を順に表しています。
-
-GitHub Actions ワークフロー：runs-on に CodeBuild 用ラベルを指定し、ジョブをキューに置く。
-GitHub：WORKFLOW_JOB_QUEUED を受けた仕組み（Webhook / GitHub がトリガー）により CodeBuild を呼ぶ構成が入ることが多い。
-AWS CodeBuild（オンデマンド実行環境）：ビルドコンテナ／ホストで runner を起動する実行基盤。buildspec.yml に沿ってフェーズを進める。
-Runner バイナリ（actions/runner）：ダウンロードして config.sh / run.sh を使い GitHub に登録してジョブを実行する。
-Secrets / Token 発行機構：registration token を GitHub API 経由で発行するための PAT または GitHub App（CodeBuild は SecretsManager 等から取得）。
-
-1. GitHub ワークフロー → ジョブキュー
-1. CodeBuild 起動（On-demand）→ buildspec 実行開始
-1. CodeBuild 内で registration token 発行（GitHub API）
-1. runner tarball ダウンロード → 展開 → config.sh で登録 → run.sh 起動
-1. runner が GitHub からジョブを受ける → 実行 → 結果を返す
-1. ジョブ完了 → config.sh remove（または API で削除）→ CodeBuild 終了
-
-# 今回のエラーについて
-
-## 事象
-```
-[Container] 2025/09/05 06:49:02.098320 Running on CodeBuild On-demand
-[Container] 2025/09/05 06:49:02.098330 Waiting for agent ping
-[Container] 2025/09/05 06:49:02.199392 Waiting for DOWNLOAD_SOURCE
-[Container] 2025/09/05 06:49:02.706838 Phase is DOWNLOAD_SOURCE
-[Container] 2025/09/05 06:49:02.707850 CODEBUILD_SRC_DIR=/codebuild/output/src48989638/src
-[Container] 2025/09/05 06:49:02.707969 YAML location is /codebuild/readonly/buildspec.yml
-[Container] 2025/09/05 06:49:02.710408 Processing environment variables
-[Container] 2025/09/05 06:49:02.846944 No runtime version selected in buildspec.
-[Container] 2025/09/05 06:49:10.480905 Error while fetching runner token: error code 400: GitHub runner JIT configuration unavailable: ResourceNotFoundException: Unexpected error from GitHub while creating runner JIT configuration, please try again later
-[Container] 2025/09/05 06:49:10.480928 Phase complete: DOWNLOAD_SOURCE State: FAILED
-[Container] 2025/09/05 06:49:10.480942 Phase context status code: CLIENT_ERROR Message: Error while fetching runner token: error code 400: GitHub runner JIT configuration unavailable: ResourceNotFoundException: Unexpected error from GitHub while creating runner JIT configuration, please try again later
-```
-このようなエラーが発生していました。
-ログの失敗は DOWNLOAD_SOURCE フェーズ で発生しています。エラー内容は「ランナー登録用の（JIT）トークン取得に失敗した」というもので、CodeBuild 側が GitHub に対して registration token（＝ランナーを一時登録するためのトークン）を取りに行ったときに 400 エラーが返ってきたことを示します。
-
-## 調査
-まずエラーログだけでは原因が特定できなかったため、CodeBuildの設定を確認しました。しかし、設定に明らかな問題は見つからず、試しに以前変更したAdmin→Writeの権限を元に戻したところ、エラーが解消されました。
-
-これにより、特定のユーザーの権限に依存していることは判明しましたが、本来であればBot経由でのアクセスとなっているはずなので、なぜユーザー権限が影響するのかが理解できませんでした。
-
-そこで、GitHubのAudit logを確認したところ、予想に反してBot経由ではなく、実際にユーザーの権限で実行されていることが判明しました。
-
-## 原因
-調査を進めると、直接的な原因は**CodeBuildの接続設定を空欄で作成したこと**でした。
-
-CodeBuildでGitHubとの接続を設定する際、接続名を空欄にして作成すると、GitHubアプリがユーザーの代行として実行されるようになります。つまり、GitHubアプリによる接続・認証は行われているものの、実際の操作はそのアプリをインストールしたユーザーの権限で実行されることになります。
-
-この状態では、以下のような問題が発生します：
-- ユーザーの権限変更が直接CodeBuildの実行に影響する
-- ユーザーがリポジトリから削除されると、CodeBuildが動作しなくなる可能性がある
-- セキュリティ上、個人のアカウントに依存した運用となってしまう
+CodeBuild で GitHub との接続を設定する際、接続名を空欄にして作成すると、GitHubアプリがユーザーの代行として実行されるようになります。つまり、GitHubアプリによる接続・認証は行われるものの、実際の操作はそのアプリをインストールしたユーザーの権限で実行されてしまいます。
 
 ## 対応方法
-この問題を解決するには、GitHubアプリを適切にインストールし、Bot経由での接続に変更する必要があります。
+そこで、GitHubアプリを適切にインストールし、Bot経由での接続に変更します。
 
 具体的な手順：
-1. CodeBuildのソース設定で、適切な接続名を指定する
-2. GitHubアプリの権限設定を確認し、必要な権限（Actions、Contents等）が付与されていることを確認する
-3. アプリがBot として動作するよう設定を見直す
+1. CodeBuildの接続設定時にかならずアプリをインストールする
+1. CodeBuild のソース設定で、適切な接続名を指定する
+1. GitHub アプリの権限設定を見直し、必要な権限（Actions、Contents など）が付与されていることを確認する
+1. アプリが Bot として動作するよう設定を見直す
 
-これにより、個人のユーザー権限に依存しない、安定したCI/CD環境を構築できます。
+です。このとき接続は一度作成すると編集できないため新たに作成し、プロジェクトから利用する接続を変更します。これは一度切断をする必要があるためその影響には気をつけてください。
 
-# 学んだこと
-- CodeBuildとGitHubの接続設定は、空欄にせず明示的に設定することが重要
-- GitHubアプリの動作モード（ユーザー代行 vs Bot）を理解して適切に設定する
-- CI/CDパイプラインは個人のアカウントに依存しない設計にすべき
-- 権限変更時は、関連するサービスへの影響を事前に確認する
+# 今回学んだこと
+自分は始めて触った構成だったのですが、管理の観点からもBot経由でのアクセス似できたほうが良いと思うので、CodeBuild と GitHub の接続設定は、空欄にせず明示的に設定するとよいと考えます。
+こうした設定ミスは見落としやすいため、インフラ構築時のチェックリストに含めておくと安心です！
 
-このような設定ミスは見落としやすいため、インフラ構築時のチェックリストに含めることをお勧めします。
 
-## 調査
-まずエラーログだけでは原因が特定できなかったため、CodeBuildの設定を確認しました。しかし、設定に明らかな問題は見つからず、試しに以前変更したAdmin→Writeの権限を元に戻したところ、エラーが解消されました。
 
-これにより、特定のユーザーの権限に依存していることは判明しましたが、本来であればBot経由でのアクセスとなっているはずなので、なぜユーザー権限が影響するのかが理解できませんでした。
-
-そこで、GitHubのAudit logを確認したところ、予想に反してBot経由ではなく、実際にユーザーの権限で実行されていることが判明しました。
