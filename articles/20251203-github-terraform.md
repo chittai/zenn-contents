@@ -18,7 +18,7 @@ https://qiita.com/advent-calendar/2025/genda
 
 
 ## トレーサビリティの向上
-弊社には複数のプロダクトがあり、それぞれ別のGitHub Organizationを持っています。複数のGitHub Organizationを運用していると、メンバーの追加・削除、チームの作成、リポジトリへのアクセス権限付与が日常的に発生します。手作業で管理していた頃は、Slackのやり取りから確認はできるものの、「誰が、いつ、なぜ権限を変更したのか」を追うのが大変でした。
+弊社には複数のグループやプロダクトも多数あるため、管理の都合上GtiHubのOrgも必然的に複数になっていきます。そして複数のGitHub Organizationを運用していると、メンバーの追加・削除、チームの作成、リポジトリへのアクセス権限付与が日常的に発生します。手作業で管理していた頃は、Slackのやり取りから確認はできるものの、「誰が、いつ、なぜ権限を変更したのか」を追うのが大変でした。
 
 しかし、PRベースでの管理フローを確立した今はこれらの課題が解決されています。誰がレビューして誰がマージしたのか、エンジニアにとって見慣れた形で管理されているので、過去の作業も参照しやすくなりました。
 
@@ -183,7 +183,7 @@ Organization毎にWorkspaceを作成します。
 +    
 +    "new-developer" = {
 +      role            = "member"
-+      email           = "new-developer@xxx.jp"
++      email           = "new-developer@example.com"
 +      name_kanji      = "新人 太郎"
 +      name_alphabet   = "Taro Shinjin"
 +      employment_type = "正社員"
