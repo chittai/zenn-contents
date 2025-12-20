@@ -3,7 +3,7 @@ title: "GitHub Organizationのメンバー管理をHCP Terraformで管理する�
 emoji: "👥"
 type: "tech"
 topics: ["github", "terraform", "iac", "devops"]
-published: false
+published: true
 publication_name: "genda_jp"
 ---
 
