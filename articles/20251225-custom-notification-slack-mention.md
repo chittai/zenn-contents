@@ -3,7 +3,7 @@ title: "Amazon Q Developer in chat applications でユーザ/ユーザーグル�
 emoji: "🔔"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["AWS", "Slack", "CloudWatch", "ChatBot", "amazonq"]
-published: false
+published: true
 publication_name: "genda_jp"
 ---
 
