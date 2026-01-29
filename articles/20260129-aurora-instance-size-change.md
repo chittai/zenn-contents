@@ -2,8 +2,8 @@
 title: "CDKでAuroraのインスタンスサイズを安全に変更する - 宣言的なDB定義のすすめ"
 emoji: "🔄"
 type: "tech"
-topics: ["aws", "cdk", "aurora", "rds", "typescript"]
-published: false
+topics: ["aws", "cdk", "aurora", "rds"]
+published: true
 publication_name: "genda_jp"
 ---
 
